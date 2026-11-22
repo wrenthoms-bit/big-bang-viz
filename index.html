@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The First 3 Seconds — Big Bang Cosmology Visualization</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="gl-canvas"></canvas>
+
+      <!-- Top-left persistent telemetry -->
+      <header id="telemetry-hud" aria-label="Cosmological Telemetry">
+        <div class="telemetry-item">
+          <div class="telemetry-label">TIME AFTER BIG BANG</div>
+          <div id="clock-readout" class="telemetry-value">1.0 &times; 10<sup>&minus;43</sup> s</div>
+        </div>
+        <div class="telemetry-divider"></div>
+        <div class="telemetry-item">
+          <div class="telemetry-label">TEMPERATURE</div>
+          <div id="temp-readout" class="telemetry-value">~1.4 &times; 10<sup>32</sup> K</div>
+        </div>
+      </header>
+
+      <!-- Top-center core concept caption (visible at start) -->
+      <div id="concept-caption" class="concept-caption" aria-live="polite">
+        The Big Bang happened everywhere at once &mdash; not an explosion from a point.
+        Moving outward from the center represents time, not space.
+      </div>
+
+      <!-- Lower-third documentary stage label -->
+      <section id="stage-label" class="stage-label" aria-live="polite">
+        <div class="stage-meta">
+          <span id="stage-index-pill" class="stage-index-pill">STAGE 1 / 6</span>
+          <span id="stage-epoch" class="stage-epoch">~10<sup>&minus;43</sup> s</span>
+        </div>
+        <h1 id="stage-title" class="stage-title">PLANCK ERA</h1>
+        <p id="stage-subtitle" class="stage-subtitle">Physics unknown.</p>
+      </section>
+
+      <!-- Bottom playback & recording bar -->
+      <footer id="controls-bar" class="controls-bar">
+        <div class="controls-row">
+          <div class="controls-left">
+            <button id="btn-play-pause" class="ctrl-btn primary" type="button" title="Play / Pause (Space)">
+              <span id="icon-play" class="hidden">&#9654;</span>
+              <span id="icon-pause">&#10074;&#10074;</span>
+              <span id="label-play-pause">Pause</span>
+            </button>
+            <span id="timeline-clock" class="timeline-clock">00.0s / 20.0s</span>
+          </div>
+
+          <div class="scrub-container">
+            <div id="stage-markers" class="stage-markers"></div>
+            <input
+              id="scrub-slider"
+              class="scrub-slider"
+              type="range"
+              min="0"
+              max="20"
+              step="0.01"
+              value="0"
+              aria-label="Timeline Scrubber"
+            />
+          </div>
+
+          <div class="controls-right">
+            <span id="fps-badge" class="fps-badge" title="Measured frame rate">-- FPS</span>
+            <button id="btn-labels" class="ctrl-btn active" type="button" title="Toggle Documentary Labels (L)">
+              Labels: <span id="labels-state">ON</span>
+            </button>
+            <button id="btn-record" class="ctrl-btn record" type="button" title="Export deterministic 1920x1080 60fps WebM">
+              <span class="rec-dot"></span>
+              <span id="record-btn-text">Record 1080p60</span>
+            </button>
+            <button id="btn-cancel-record" class="ctrl-btn danger hidden" type="button">
+              Cancel
+            </button>
+          </div>
+        </div>
+        <div id="record-progress-wrap" class="record-progress-wrap hidden">
+          <div class="record-progress-track">
+            <div id="record-progress-fill" class="record-progress-fill"></div>
+          </div>
+          <span id="record-status-text" class="record-status-text">Encoding frame 0 / 1200...</span>
+        </div>
+      </footer>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

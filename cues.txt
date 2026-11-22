@@ -1,0 +1,10 @@
+# BIG BANG: THE FIRST ~3 SECONDS (20.00s VISUAL TIMELINE)
+# Format: [Timeline Timestamp] | [Physical Epoch] | [Approx. Temperature] | [Visual & Editorial Cue]
+
+00.00s | Stage 1: Planck Era (~10^-43 s) | ~1.4 x 10^32 K | Blinding blue-white core with turbulent quantum foam; label: "Physics unknown." + core-concept caption
+02.00s | Stage 2: Inflation (10^-36 - 10^-32 s) | ~10^28 - 10^26 K | Exponentially stretching spacetime lattice with tiny quantum ripples freezing into place
+06.00s | Stage 3: Quark-Gluon Plasma (10^-32 - ~10^-6 s) | ~10^25 - 3 x 10^12 K | Turbulent, swirling orange, red, and violet particle streams with gluon energy filaments
+11.00s | Stage 4: Protons and Neutrons Form (~10^-6 - ~10^-4 s) | ~2 x 10^12 - 1.5 x 10^11 K | Quarks visibly snap together into luminous clusters of three (hadronization)
+14.00s | Stage 5: Matter Survives (~10^-4 s onward) | ~1.5 x 10^11 - 10^10 K | Bright matter-antimatter annihilation flashes leaving ~1 in a billion matter remnant
+16.00s | Stage 6: Neutrinos Decouple (~1 - 3 s) | ~10^10 - 5.8 x 10^9 K | Faint, fast trails stream freely outward; settles into cooling nearly uniform glowing plasma with faint density ripples
+20.00s | End | ~5.8 x 10^9 K | Final hold on cooling opaque plasma with subtle acoustic density ripples
