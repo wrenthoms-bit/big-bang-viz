@@ -3,3 +3,6 @@ dist/
 .DS_Store
 *.log
 .env*
+blender/renders/
+blender/__pycache__/
+*.blend1

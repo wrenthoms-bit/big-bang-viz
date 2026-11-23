@@ -1,0 +1,11 @@
+# BIG BANG: THE FIRST ~3 SECONDS — BLENDER CUE SHEET (20.00s @ 24 fps = 480 frames)
+# Format: [Seconds] | [Frame] | [Stage & Physical Epoch] | [Approx. Temp] | [Visual & Editorial Cue]
+
+00.00s | f001 | Stage 1: Planck Era (~10^-43 s)                   | ~1.4 x 10^32 K | Blinding blue-white core; "Physics unknown." + opening concept caption (f001-f108)
+02.00s | f049 | Stage 2: Inflation (10^-36 - 10^-32 s)            | ~1.0 x 10^28 K | Exponentially stretching spacetime lattice with frozen quantum ripples
+06.00s | f145 | Stage 3: Quark-Gluon Plasma (10^-32 - ~10^-6 s)   | ~1.0 x 10^26 K | Turbulent swirling orange, red, and violet plasma with energy filaments
+11.00s | f265 | Stage 4: Protons & Neutrons Form (~10^-6 - 10^-4s)| ~3.0 x 10^12 K | Quarks visibly snap into luminous clusters of three (hadronization)
+14.00s | f337 | Stage 5: Matter Survives (~10^-4 s onward)        | ~1.5 x 10^11 K | Matter-antimatter annihilation flashes leaving ~1 in a billion remnant
+16.00s | f385 | Stage 6: Neutrinos Decouple (~1 - 3 s)            | ~1.0 x 10^10 K | Faint, fast trails stream outward through cooling plasma fog
+18.20s | f438 | Stage 6b: Cooling Opaque Plasma                   | ~7.0 x 10^9 K  | Subtitle transitions to faint acoustic density ripples (seeds of galaxies)
+20.00s | f480 | End                                               | ~5.8 x 10^9 K  | Final hold inside uniform glowing plasma with subtle density ripples

@@ -1,0 +1,312 @@
+{
+  "project_name": "big-bang-viz-blender",
+  "timeline": {
+    "fps": 24,
+    "duration_seconds": 20.0,
+    "frame_start": 1,
+    "frame_end": 480
+  },
+  "stages": [
+    {
+      "id": "planck",
+      "index": 0,
+      "start_s": 0.0,
+      "end_s": 2.0,
+      "start_frame": 1,
+      "end_frame": 48,
+      "hero_frame": 22,
+      "shell_radius": [0.0, 7.0],
+      "title": "PLANCK ERA",
+      "epoch": "~10⁻⁴³ s",
+      "subtitle": "Physics unknown.",
+      "marker_color": [0.86, 0.93, 1.0]
+    },
+    {
+      "id": "inflation",
+      "index": 1,
+      "start_s": 2.0,
+      "end_s": 6.0,
+      "start_frame": 49,
+      "end_frame": 144,
+      "hero_frame": 97,
+      "shell_radius": [6.0, 24.0],
+      "title": "INFLATION",
+      "epoch": "10⁻³⁶ – 10⁻³² s (leading theory)",
+      "subtitle": "Space stretches exponentially; quantum ripples freeze in",
+      "marker_color": [0.40, 0.85, 1.0]
+    },
+    {
+      "id": "qgp",
+      "index": 2,
+      "start_s": 6.0,
+      "end_s": 11.0,
+      "start_frame": 145,
+      "end_frame": 264,
+      "hero_frame": 205,
+      "shell_radius": [20.0, 44.0],
+      "title": "QUARK–GLUON PLASMA",
+      "epoch": "10⁻³² – ~10⁻⁶ s",
+      "subtitle": "Turbulent quark streams and gluon energy filaments",
+      "marker_color": [1.0, 0.44, 0.26]
+    },
+    {
+      "id": "hadrons",
+      "index": 3,
+      "start_s": 11.0,
+      "end_s": 14.0,
+      "start_frame": 265,
+      "end_frame": 336,
+      "hero_frame": 303,
+      "shell_radius": [40.0, 62.0],
+      "title": "PROTONS & NEUTRONS FORM",
+      "epoch": "~10⁻⁶ – 10⁻⁴ s",
+      "subtitle": "Quarks snap together into luminous clusters of three",
+      "marker_color": [1.0, 0.76, 0.27]
+    },
+    {
+      "id": "matter",
+      "index": 4,
+      "start_s": 14.0,
+      "end_s": 16.0,
+      "start_frame": 337,
+      "end_frame": 384,
+      "hero_frame": 359,
+      "shell_radius": [58.0, 80.0],
+      "title": "MATTER SURVIVES",
+      "epoch": "~10⁻⁴ s onward",
+      "subtitle": "Annihilation flashes leave ~1 in a billion particles",
+      "marker_color": [1.0, 0.88, 0.64]
+    },
+    {
+      "id": "neutrinos",
+      "index": 5,
+      "start_s": 16.0,
+      "end_s": 20.0,
+      "start_frame": 385,
+      "end_frame": 480,
+      "hero_frame": 409,
+      "late_hero_frame": 471,
+      "shell_radius": [76.0, 125.0],
+      "title": "NEUTRINOS DECOUPLE",
+      "epoch": "~1 – 3 s",
+      "subtitle": "Faint trails stream freely through cooling plasma",
+      "late_subtitle": "Cooling opaque plasma — faint density ripples, seeds of future galaxies",
+      "late_subtitle_s": 18.2,
+      "marker_color": [1.0, 0.54, 0.31]
+    }
+  ],
+  "opening_caption": {
+    "start_frame": 1,
+    "end_frame": 108,
+    "fade_frames": 14,
+    "text": "The Big Bang happened everywhere at once — not an explosion from a point.\nMoving outward from the center represents time, not space."
+  },
+  "time_anchors": [
+    [0.0, -43.0],
+    [2.0, -36.0],
+    [6.0, -32.0],
+    [11.0, -6.0],
+    [14.0, -4.0],
+    [16.0, 0.0],
+    [20.0, 0.47712125471966244]
+  ],
+  "temp_anchors": [
+    [0.0, 32.15],
+    [2.0, 28.0],
+    [6.0, 26.0],
+    [11.0, 12.48],
+    [14.0, 11.18],
+    [16.0, 10.0],
+    [20.0, 9.76]
+  ],
+  "camera": {
+    "lens_mm": 26.0,
+    "sensor_width_mm": 36.0,
+    "clip_start": 0.1,
+    "clip_end": 400.0,
+    "dof_enabled": true,
+    "aperture_fstop": 2.4,
+    "keyframe_step": 4,
+    "radius_knots": [
+      [0.0, 9.0],
+      [2.0, 13.5],
+      [6.0, 25.5],
+      [11.0, 44.0],
+      [14.0, 60.5],
+      [16.0, 77.5],
+      [20.0, 104.0]
+    ],
+    "azimuth_rate": 0.14,
+    "elevation_amp": 0.18,
+    "handheld_pos_amp": 0.18,
+    "handheld_roll_deg": 1.1
+  },
+  "color_management": {
+    "view_transform": "AgX",
+    "look": "AgX - High Contrast",
+    "exposure": 0.0
+  },
+  "volumetrics": {
+    "start": 0.5,
+    "end": 165.0,
+    "distribution": 0.85,
+    "ray_depth": 4,
+    "use_shadows": true,
+    "shadow_samples": 16,
+    "world_density": 0.018,
+    "world_emission": 0.36
+  },
+  "compositor": {
+    "bloom_threshold": 1.15,
+    "bloom_strength": 0.48,
+    "bloom_size": 0.72,
+    "streaks_threshold": 3.4,
+    "streaks_strength": 0.16,
+    "lens_distortion": -0.018,
+    "lens_dispersion": 0.009,
+    "grain_strength": 0.020
+  },
+  "full_look": {
+    "core_light_energy_w": {
+      "planck": 8500.0,
+      "inflation": 4500.0,
+      "qgp": 12000.0,
+      "hadrons": 8000.0,
+      "matter": 10000.0,
+      "neutrinos": 0.0
+    },
+    "planck": {
+      "core_density": 0.14,
+      "core_emission": 0.24,
+      "corona_density": 0.050,
+      "corona_emission": 0.030,
+      "foam_count_density": 1.8
+    },
+    "inflation": {
+      "shell_density": 0.030,
+      "shell_emission": 0.016,
+      "beam_emission": 1.65,
+      "node_emission": 2.4
+    },
+    "qgp": {
+      "shell_density": 0.060,
+      "shell_emission": 0.034,
+      "particle_count": 3200,
+      "filament_count": 200
+    },
+    "hadrons": {
+      "shell_density": 0.036,
+      "shell_emission": 0.022,
+      "hero_triplets": 48,
+      "shell_triplets": 110
+    },
+    "matter": {
+      "shell_density": 0.032,
+      "shell_emission": 0.025,
+      "hero_pairs": 46,
+      "shell_pairs": 90,
+      "flash_emission": 6.5
+    },
+    "neutrinos": {
+      "shell_density": 0.038,
+      "shell_emission": 0.036,
+      "hero_trails": 260,
+      "shell_trails": 80,
+      "trail_emission": 2.3
+    }
+  },
+  "scaffold_greys": {
+    "world_color": [0.16, 0.17, 0.20],
+    "world_emission": 0.008,
+    "world_density": 0.010,
+    "planck_core_emission": 0.42,
+    "planck_shell_density": 0.14,
+    "inflation_emission": 0.028,
+    "inflation_density": 0.032,
+    "qgp_emission": 0.045,
+    "qgp_density": 0.058,
+    "hadrons_emission": 0.032,
+    "hadrons_density": 0.034,
+    "matter_emission": 0.036,
+    "matter_density": 0.030,
+    "neutrinos_emission": 0.024,
+    "neutrinos_density": 0.028
+  },
+  "colors": {
+    "planck_core": [0.78, 0.90, 1.0],
+    "planck_corona": [0.25, 0.55, 1.0],
+    "inflation_lattice": [0.42, 0.84, 1.0],
+    "inflation_ripple": [0.70, 0.62, 1.0],
+    "qgp_orange": [1.0, 0.36, 0.04],
+    "qgp_red": [0.95, 0.08, 0.12],
+    "qgp_violet": [0.58, 0.14, 1.0],
+    "hadron_quarks": [
+      [1.0, 0.48, 0.10],
+      [1.0, 0.84, 0.38],
+      [0.98, 0.26, 0.36]
+    ],
+    "matter_gold": [1.0, 0.62, 0.14],
+    "antimatter_cyan": [0.24, 0.84, 1.0],
+    "annihilation_flash": [1.0, 0.94, 0.82],
+    "neutrino_trail": [0.76, 0.88, 1.0],
+    "cooling_plasma_crest": [0.85, 0.34, 0.08],
+    "cooling_plasma_trough": [0.36, 0.10, 0.03]
+  },
+  "hud": {
+    "font_sans": "/System/Library/Fonts/SFNS.ttf",
+    "font_mono": "/System/Library/Fonts/SFNSMono.ttf",
+    "show_frame_counter_in_scaffold": true
+  },
+  "render_profiles": {
+    "scaffold_480p": {
+      "width": 854,
+      "height": 480,
+      "engine": "BLENDER_EEVEE",
+      "samples": 8,
+      "volumetric_tile_size": "8",
+      "volumetric_samples": 32,
+      "volumetric_shadow_samples": 8,
+      "use_raytracing": false
+    },
+    "preview_720p": {
+      "width": 1280,
+      "height": 720,
+      "engine": "BLENDER_EEVEE",
+      "samples": 16,
+      "volumetric_tile_size": "8",
+      "volumetric_samples": 48,
+      "volumetric_shadow_samples": 8,
+      "use_raytracing": false
+    },
+    "stills_1080p": {
+      "width": 1920,
+      "height": 1080,
+      "engine": "BLENDER_EEVEE",
+      "samples": 32,
+      "volumetric_tile_size": "4",
+      "volumetric_samples": 64,
+      "volumetric_shadow_samples": 8,
+      "use_raytracing": false
+    },
+    "final_1080p": {
+      "width": 1920,
+      "height": 1080,
+      "engine": "BLENDER_EEVEE",
+      "samples": 32,
+      "volumetric_tile_size": "4",
+      "volumetric_samples": 64,
+      "volumetric_shadow_samples": 8,
+      "use_raytracing": false
+    },
+    "cycles_still_1080p": {
+      "width": 1920,
+      "height": 1080,
+      "engine": "CYCLES",
+      "samples": 64,
+      "use_denoising": true,
+      "volume_step_rate": 1.5,
+      "volume_max_steps": 128,
+      "volume_bounces": 1
+    }
+  }
+}
