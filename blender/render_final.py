@@ -17,15 +17,41 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Render 1080p24 CLEAN and LABELLED finals + ProRes 422 HQ & H.264 MP4")
     parser.add_argument("--blend", default=os.path.join(BLENDER_DIR, "big_bang.blend"))
     parser.add_argument("--profile", default="final_1080p")
+    parser.add_argument("--ranges", default="", help="Comma-separated frame ranges or numbers, e.g. 1-172,246-402")
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--skip-encode", action="store_true")
     return parser.parse_args(argv)
 
 
+def _parse_frame_ranges(ranges_str, f_start, f_end):
+    if not ranges_str or not ranges_str.strip():
+        return list(range(f_start, f_end + 1))
+    selected = set()
+    for tok in ranges_str.split(","):
+        tok = tok.strip()
+        if not tok:
+            continue
+        if "-" in tok:
+            parts = tok.split("-", 1)
+            a = max(f_start, int(parts[0].strip()))
+            b = min(f_end, int(parts[1].strip()))
+            if a <= b:
+                selected.update(range(a, b + 1))
+        else:
+            f = int(tok)
+            if f_start <= f <= f_end:
+                selected.add(f)
+    return sorted(selected)
+
+
 def _warmup_sim_if_needed(scene, target_frame, last_sim_frame):
     # Stage 3 QGP simulation zone runs from frame 125..278
     if 125 <= target_frame <= 278:
-        start_f = 125 if last_sim_frame < 125 or last_sim_frame > target_frame else last_sim_frame + 1
+        if last_sim_frame < 125 or last_sim_frame > target_frame:
+            scene.frame_set(1)
+            start_f = 120
+        else:
+            start_f = last_sim_frame + 1
         for sf in range(start_f, target_frame + 1):
             scene.frame_set(sf)
         return target_frame
@@ -62,8 +88,9 @@ def main():
     t_all_start = time.perf_counter()
     f_start = cfg["timeline"]["frame_start"]
     f_end = cfg["timeline"]["frame_end"]
+    frame_list = _parse_frame_ranges(args.ranges, f_start, f_end)
 
-    for f in range(f_start, f_end + 1):
+    for idx, f in enumerate(frame_list):
         clean_path = os.path.join(clean_dir, f"frame_{f:04d}.png")
         lbl_path = os.path.join(labelled_dir, f"frame_{f:04d}.png")
 
@@ -87,9 +114,9 @@ def main():
 
         dt = time.perf_counter() - t0
         timings.append(dt)
-        if f % 24 == 0:
+        if len(timings) % 24 == 0 or (idx + 1) == len(frame_list):
             avg = sum(timings) / len(timings)
-            print(f"[render_final] Frame {f:04d}/{f_end}: {dt:.2f}s (avg {avg:.2f}s/f)")
+            print(f"[render_final] Frame {f:04d} ({idx + 1}/{len(frame_list)}): {dt:.2f}s (avg {avg:.2f}s/f)")
 
     if os.path.exists(tmp_hud):
         os.remove(tmp_hud)

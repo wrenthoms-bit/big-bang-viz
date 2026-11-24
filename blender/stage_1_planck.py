@@ -2,7 +2,7 @@ import bpy
 import scene_utils as utils
 
 
-def _build_planck_foam_gn(name, mat, density_val=0.85, radius_sphere=6.2, point_radius=0.09, subdiv=1):
+def _build_planck_foam_gn(name, mat, density_val=0.85, radius_sphere=6.2, point_radius=0.09, subdiv=1, near_fade=False):
     ng = bpy.data.node_groups.new(name, "GeometryNodeTree")
     ng.interface.new_socket(name="Geometry", in_out="INPUT", socket_type="NodeSocketGeometry")
     ng.interface.new_socket(name="Geometry", in_out="OUTPUT", socket_type="NodeSocketGeometry")
@@ -70,7 +70,32 @@ def _build_planck_foam_gn(name, mat, density_val=0.85, radius_sphere=6.2, point_
     ng.links.new(n_noise.outputs["Fac"], n_flicker.inputs["Value"])
     ng.links.new(n_setpos.outputs["Geometry"], n_inst.inputs["Points"])
     ng.links.new(utils.add_shade_smooth(ng, n_ico.outputs["Mesh"]), n_inst.inputs["Instance"])
-    ng.links.new(n_flicker.outputs["Result"], n_inst.inputs["Scale"])
+
+    scale_sock = n_flicker.outputs["Result"]
+    cam_obj = bpy.context.scene.camera if near_fade else None
+    if cam_obj is not None:
+        n_anim_pos = ng.nodes.new("GeometryNodeInputPosition")
+        n_cam = ng.nodes.new("GeometryNodeObjectInfo")
+        n_cam.transform_space = "RELATIVE"
+        n_cam.inputs["Object"].default_value = cam_obj
+        n_dist_cam = ng.nodes.new("ShaderNodeVectorMath")
+        n_dist_cam.operation = "DISTANCE"
+        n_cfade = ng.nodes.new("ShaderNodeMapRange")
+        n_cfade.clamp = True
+        n_cfade.inputs["From Min"].default_value = 1.6
+        n_cfade.inputs["From Max"].default_value = 2.6
+        n_cfade.inputs["To Min"].default_value = 0.0
+        n_cfade.inputs["To Max"].default_value = 1.0
+        n_scmul = ng.nodes.new("ShaderNodeMath")
+        n_scmul.operation = "MULTIPLY"
+        ng.links.new(n_anim_pos.outputs["Position"], n_dist_cam.inputs[0])
+        ng.links.new(n_cam.outputs["Location"], n_dist_cam.inputs[1])
+        ng.links.new(n_dist_cam.outputs["Value"], n_cfade.inputs["Value"])
+        ng.links.new(scale_sock, n_scmul.inputs[0])
+        ng.links.new(n_cfade.outputs["Result"], n_scmul.inputs[1])
+        scale_sock = n_scmul.outputs["Value"]
+
+    ng.links.new(scale_sock, n_inst.inputs["Scale"])
     ng.links.new(n_inst.outputs["Instances"], n_setmat.inputs["Geometry"])
     ng.links.new(n_setmat.outputs["Geometry"], n_out.inputs["Geometry"])
     return ng
@@ -124,21 +149,45 @@ def build(scene, cfg, mode="scaffold"):
 
     # Full cinematic look-development mode
     fl = cfg["full_look"]["planck"]
+    dp = cfg.get("depth_pass", {})
+    depth_on = bool(dp.get("enabled", False))
+    dp_p = dp.get("planck", {}) if depth_on else {}
 
-    # 1. Incandescent Inner Planck Core (blinding blue-white heart inside sapphire plasma)
-    core_ramp = [
-        (0.14, (0.03, 0.12, 0.64)),
-        (0.42, (0.12, 0.44, 0.96)),
-        (0.68, (0.56, 0.85, 1.00)),
-        (0.88, (1.00, 1.00, 1.00)),
-    ]
-    core_dens = utils.sample_stage_envelope("planck", cfg, fl["core_density"], rest_val=0.0)
-    core_em = utils.sample_stage_envelope("planck", cfg, fl["core_emission"], rest_val=0.0)
+    # 1. Incandescent Inner Planck Core (blinding overexposed blue-white heart)
+    if depth_on:
+        core_ramp = [
+            (0.10, (0.08, 0.28, 0.88)),
+            (0.36, (0.42, 0.78, 1.00)),
+            (0.62, (0.88, 0.96, 1.00)),
+            (0.82, (1.00, 1.00, 1.00)),
+        ]
+        core_dens_peak = dp_p.get("core_density", fl["core_density"])
+        core_em_peak = dp_p.get("core_emission", fl["core_emission"])
+        core_outer_r = dp_p.get("core_outer_r", 2.2)
+        core_feather = dp_p.get("core_feather", 1.1)
+        core_sphere_r = dp_p.get("core_sphere_r", 3.6)
+        core_dens_range = (0.24, 0.72)
+    else:
+        core_ramp = [
+            (0.14, (0.03, 0.12, 0.64)),
+            (0.42, (0.12, 0.44, 0.96)),
+            (0.68, (0.56, 0.85, 1.00)),
+            (0.88, (1.00, 1.00, 1.00)),
+        ]
+        core_dens_peak = fl["core_density"]
+        core_em_peak = fl["core_emission"]
+        core_outer_r = 3.6
+        core_feather = 1.6
+        core_sphere_r = 4.8
+        core_dens_range = (0.22, 0.80)
+
+    core_dens = utils.sample_stage_envelope("planck", cfg, core_dens_peak, rest_val=0.0)
+    core_em = utils.sample_stage_envelope("planck", cfg, core_em_peak, rest_val=0.0)
     core_mat = utils.make_rich_volume_material(
         "Stage1_Planck_CoreVolMat",
         inner_r=0.0,
-        outer_r=3.6,
-        feather=1.6,
+        outer_r=core_outer_r,
+        feather=core_feather,
         ramp_stops=core_ramp,
         noise_scale=0.52,
         noise_detail=4.0,
@@ -148,26 +197,48 @@ def build(scene, cfg, mode="scaffold"):
         voronoi_mix=0.28,
         anisotropy=0.45,
         emission_power=1.45,
+        dens_range=core_dens_range,
         density_keyframes=core_dens,
         emission_keyframes=core_em,
         cfg=cfg,
     )
-    utils.create_volume_sphere("Planck_Core_Volume", col, radius=4.8, mat=core_mat, subdivisions=3, active_frame_range=(1, 175))
+    utils.create_volume_sphere("Planck_Core_Volume", col, radius=core_sphere_r, mat=core_mat, subdivisions=3, active_frame_range=(1, 175))
 
-    # 2. Outer Turbulent Sapphire-Cyan Corona
-    corona_ramp = [
-        (0.18, (0.012, 0.045, 0.30)),
-        (0.50, (0.060, 0.220, 0.78)),
-        (0.76, (0.240, 0.620, 1.00)),
-        (0.94, (0.780, 0.920, 1.00)),
-    ]
-    cor_dens = utils.sample_stage_envelope("planck", cfg, fl["corona_density"], rest_val=0.0)
-    cor_em = utils.sample_stage_envelope("planck", cfg, fl["corona_emission"], rest_val=0.0)
+    # 2. Outer Turbulent Sapphire-Cyan Corona (billowing layered clouds + dark gaps around core)
+    if depth_on:
+        corona_ramp = [
+            (0.14, (0.004, 0.015, 0.14)),
+            (0.44, (0.040, 0.180, 0.72)),
+            (0.74, (0.260, 0.680, 1.00)),
+            (0.92, (0.920, 0.970, 1.00)),
+        ]
+        cor_dens_peak = dp_p.get("corona_density", fl["corona_density"])
+        cor_em_peak = dp_p.get("corona_emission", fl["corona_emission"])
+        cor_inner_r = 1.8
+        cor_outer_r = 14.8
+        cor_feather = 3.6
+        cor_sphere_r = 16.5
+    else:
+        corona_ramp = [
+            (0.18, (0.012, 0.045, 0.30)),
+            (0.50, (0.060, 0.220, 0.78)),
+            (0.76, (0.240, 0.620, 1.00)),
+            (0.94, (0.780, 0.920, 1.00)),
+        ]
+        cor_dens_peak = fl["corona_density"]
+        cor_em_peak = fl["corona_emission"]
+        cor_inner_r = 2.0
+        cor_outer_r = 11.5
+        cor_feather = 3.2
+        cor_sphere_r = 13.0
+
+    cor_dens = utils.sample_stage_envelope("planck", cfg, cor_dens_peak, rest_val=0.0)
+    cor_em = utils.sample_stage_envelope("planck", cfg, cor_em_peak, rest_val=0.0)
     corona_mat = utils.make_rich_volume_material(
         "Stage1_Planck_CoronaVolMat",
-        inner_r=2.0,
-        outer_r=11.5,
-        feather=3.2,
+        inner_r=cor_inner_r,
+        outer_r=cor_outer_r,
+        feather=cor_feather,
         ramp_stops=corona_ramp,
         noise_scale=0.22,
         noise_detail=4.0,
@@ -180,10 +251,11 @@ def build(scene, cfg, mode="scaffold"):
         density_keyframes=cor_dens,
         emission_keyframes=cor_em,
         cfg=cfg,
+        depth_cfg=dp_p if depth_on else None,
     )
-    utils.create_volume_sphere("Planck_Corona_Volume", col, radius=13.0, mat=corona_mat, subdivisions=3, active_frame_range=(1, 175))
+    utils.create_volume_sphere("Planck_Corona_Volume", col, radius=cor_sphere_r, mat=corona_mat, subdivisions=3, active_frame_range=(1, 175))
 
-    # 3. Soft Fresnel Plasma Sparks (Quantum Foam)
+    # 3. Soft Fresnel Plasma Sparks (Quantum Foam) + Foreground Bokeh Drifters
     foam_alpha = utils.sample_stage_envelope("planck", cfg, 0.92, rest_val=0.0)
     foam_strengths = utils.sample_stage_envelope("planck", cfg, 2.6, rest_val=0.0)
     foam_mat = utils.make_plasma_orb_material(
@@ -208,8 +280,26 @@ def build(scene, cfg, mode="scaffold"):
         "Planck_Foam_GN",
         foam_mat,
         density_val=fl["foam_count_density"],
-        radius_sphere=7.2,
+        radius_sphere=11.5 if depth_on else 7.2,
         point_radius=0.075,
         subdiv=2,
+        near_fade=depth_on,
     )
+
+    if depth_on and dp_p.get("fg_bokeh_count", 0) > 0:
+        utils.build_foreground_drifters(
+            "Planck_FG_Bokeh",
+            col,
+            cfg,
+            stage_key="planck",
+            u_start=0.0,
+            u_end=2.2,
+            hide_frames=((1, False), (74, False), (75, True)),
+            core_rgb=(1.0, 1.0, 1.0),
+            edge_rgb=(0.28, 0.72, 1.0),
+            count=dp_p["fg_bokeh_count"],
+            seed=111,
+            strength=3.4,
+            alpha_peak=0.72,
+        )
     return col

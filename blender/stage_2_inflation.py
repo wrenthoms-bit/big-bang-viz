@@ -190,18 +190,47 @@ def build(scene, cfg, mode="scaffold"):
         grid_n, spacing = 6, 4.2
     else:
         fl = cfg["full_look"]["inflation"]
-        shell_ramp = [
-            (0.18, (0.012, 0.035, 0.20)),
-            (0.48, (0.040, 0.140, 0.56)),
-            (0.74, (0.120, 0.400, 0.90)),
-            (0.92, (0.480, 0.360, 0.95)),
-        ]
-        dens_keys = utils.sample_stage_envelope("inflation", cfg, fl["shell_density"], rest_val=0.0)
-        em_keys = utils.sample_stage_envelope("inflation", cfg, fl["shell_emission"], rest_val=0.0)
+        dp = cfg.get("depth_pass", {})
+        depth_on = bool(dp.get("enabled", False))
+        dp_inf = dp.get("inflation", {}) if depth_on else {}
+
+        if depth_on:
+            shell_ramp = [
+                (0.14, (0.004, 0.012, 0.10)),
+                (0.44, (0.030, 0.120, 0.48)),
+                (0.74, (0.140, 0.500, 0.98)),
+                (0.92, (0.580, 0.560, 1.00)),
+            ]
+            shell_dens_peak = dp_inf.get("shell_density", fl["shell_density"])
+            shell_em_peak = dp_inf.get("shell_emission", fl["shell_emission"])
+            outer_r = 28.0
+            sphere_r = 30.0
+            lat_fade = (
+                dp_inf.get("lattice_fade_start", 9.0),
+                dp_inf.get("lattice_fade_end", 32.0),
+                dp_inf.get("lattice_far_alpha", 0.14),
+                dp_inf.get("lattice_far_em", 0.28),
+                0.30,
+            )
+        else:
+            shell_ramp = [
+                (0.18, (0.012, 0.035, 0.20)),
+                (0.48, (0.040, 0.140, 0.56)),
+                (0.74, (0.120, 0.400, 0.90)),
+                (0.92, (0.480, 0.360, 0.95)),
+            ]
+            shell_dens_peak = fl["shell_density"]
+            shell_em_peak = fl["shell_emission"]
+            outer_r = 26.0
+            sphere_r = 28.0
+            lat_fade = None
+
+        dens_keys = utils.sample_stage_envelope("inflation", cfg, shell_dens_peak, rest_val=0.0)
+        em_keys = utils.sample_stage_envelope("inflation", cfg, shell_em_peak, rest_val=0.0)
         vol_mat = utils.make_rich_volume_material(
             "Stage2_Inflation_VolMat",
             inner_r=5.5,
-            outer_r=26.0,
+            outer_r=outer_r,
             feather=3.5,
             ramp_stops=shell_ramp,
             noise_scale=0.14,
@@ -215,8 +244,9 @@ def build(scene, cfg, mode="scaffold"):
             density_keyframes=dens_keys,
             emission_keyframes=em_keys,
             cfg=cfg,
+            depth_cfg=dp_inf if depth_on else None,
         )
-        utils.create_volume_sphere("Inflation_Shell_Volume", col, radius=28.0, mat=vol_mat, subdivisions=3, active_frame_range=(34, 172))
+        utils.create_volume_sphere("Inflation_Shell_Volume", col, radius=sphere_r, mat=vol_mat, subdivisions=3, active_frame_range=(34, 172))
 
         inf_alpha = utils.sample_stage_envelope("inflation", cfg, 0.90, rest_val=0.0)
         crest_ramp = [
@@ -233,6 +263,7 @@ def build(scene, cfg, mode="scaffold"):
             attr_name="ripple_crest",
             attr_ramp=crest_ramp,
             attr_type="GEOMETRY",
+            distance_fade=lat_fade,
         )
         node_mat = utils.make_plasma_orb_material(
             "Stage2_Lattice_NodeMat",
@@ -244,12 +275,30 @@ def build(scene, cfg, mode="scaffold"):
             attr_ramp=crest_ramp,
             attr_type="INSTANCER",
             power=2.4,
+            distance_fade=lat_fade,
         )
         gn_group = _build_inflation_lattice_gn(
             "Inflation_Lattice_GN", beam_mat, node_mat, cfg, resample_count=10, beam_rad=0.022, node_rad=0.11, node_subdiv=2
         )
         octaves = (0.38, 0.72, 1.25)
         grid_n, spacing = 7, 3.8
+
+        if depth_on and dp_inf.get("fg_bokeh_count", 0) > 0:
+            utils.build_foreground_drifters(
+                "Inflation_FG_Bokeh",
+                col,
+                cfg,
+                stage_key="inflation",
+                u_start=1.8,
+                u_end=6.1,
+                hide_frames=((1, True), (35, True), (36, False), (165, False), (166, True)),
+                core_rgb=(0.92, 0.98, 1.0),
+                edge_rgb=(0.30, 0.78, 1.0),
+                count=dp_inf["fg_bokeh_count"],
+                seed=212,
+                strength=2.6,
+                alpha_peak=0.70,
+            )
 
     for oct_idx, scale_mult in enumerate(octaves):
         mesh = _build_lattice_mesh(f"Inflation_Lattice_Mesh_{oct_idx}", grid_n=grid_n, spacing=spacing)

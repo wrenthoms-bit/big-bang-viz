@@ -1,6 +1,7 @@
 import json
 import math
 import os
+import random
 import shutil
 import subprocess
 import bpy
@@ -363,18 +364,37 @@ def setup_world_volume(scene, cfg, mode="scaffold"):
         n_pv.inputs["Anisotropy"].default_value = 0.48
 
         # Deep saturated plasma backdrops so emissive structures pop cleanly under AgX
-        epoch_keys = [
-            (1,   (0.015, 0.06, 0.36), (0.06, 0.22, 0.72), 0.012, 0.0055, (0.015, 0.05, 0.26), 0.06),
-            (48,  (0.012, 0.05, 0.30), (0.05, 0.18, 0.62), 0.011, 0.0050, (0.012, 0.04, 0.22), 0.05),
-            (97,  (0.010, 0.03, 0.22), (0.04, 0.12, 0.46), 0.010, 0.0045, (0.010, 0.03, 0.16), 0.05),
-            (145, (0.060, 0.01, 0.12), (0.20, 0.03, 0.08), 0.012, 0.0052, (0.050, 0.01, 0.09), 0.05),
-            (205, (0.080, 0.01, 0.08), (0.28, 0.04, 0.02), 0.013, 0.0058, (0.070, 0.01, 0.04), 0.06),
-            (265, (0.140, 0.03, 0.01), (0.36, 0.09, 0.015), 0.011, 0.0055, (0.100, 0.025, 0.01), 0.06),
-            (303, (0.150, 0.035, 0.01), (0.38, 0.10, 0.018), 0.011, 0.0052, (0.110, 0.03, 0.01), 0.06),
-            (345, (0.180, 0.05, 0.01), (0.44, 0.14, 0.022), 0.010, 0.0052, (0.130, 0.04, 0.01), 0.06),
-            (385, (0.160, 0.04, 0.01), (0.40, 0.12, 0.020), 0.010, 0.0048, (0.120, 0.035, 0.01), 0.06),
-            (480, (0.140, 0.032, 0.008), (0.36, 0.10, 0.018), 0.010, 0.0045, (0.100, 0.028, 0.008), 0.05),
-        ]
+        dp = cfg.get("depth_pass", {})
+        depth_on = bool(dp.get("enabled", False))
+        if depth_on:
+            epoch_keys = [
+                (1,   (0.005, 0.022, 0.16), (0.045, 0.18, 0.64), 0.0085, 0.0045, (0.003, 0.014, 0.10), 0.005),
+                (48,  (0.005, 0.020, 0.15), (0.042, 0.16, 0.58), 0.0080, 0.0042, (0.003, 0.012, 0.09), 0.005),
+                (97,  (0.004, 0.014, 0.11), (0.035, 0.12, 0.48), 0.0075, 0.0038, (0.002, 0.009, 0.07), 0.005),
+                (145, (0.045, 0.008, 0.10), (0.180, 0.028, 0.09), 0.0110, 0.0048, (0.040, 0.008, 0.08), 0.038),
+                (172, (0.068, 0.010, 0.10), (0.240, 0.035, 0.05), 0.0125, 0.0055, (0.060, 0.010, 0.065), 0.055),
+                (205, (0.080, 0.010, 0.08), (0.280, 0.040, 0.02), 0.0130, 0.0058, (0.070, 0.010, 0.040), 0.060),
+                (246, (0.120, 0.024, 0.012), (0.330, 0.075, 0.016), 0.0115, 0.0056, (0.090, 0.020, 0.018), 0.060),
+                (265, (0.085, 0.016, 0.005), (0.340, 0.085, 0.014), 0.0135, 0.0058, (0.045, 0.010, 0.004), 0.012),
+                (303, (0.095, 0.020, 0.005), (0.380, 0.105, 0.018), 0.0135, 0.0056, (0.048, 0.012, 0.004), 0.012),
+                (359, (0.110, 0.028, 0.006), (0.440, 0.140, 0.022), 0.0125, 0.0055, (0.055, 0.015, 0.005), 0.012),
+                (385, (0.140, 0.035, 0.009), (0.390, 0.115, 0.019), 0.0105, 0.0049, (0.105, 0.030, 0.009), 0.042),
+                (402, (0.155, 0.038, 0.0095), (0.390, 0.115, 0.0195), 0.0100, 0.0047, (0.115, 0.033, 0.0095), 0.058),
+                (480, (0.140, 0.032, 0.008), (0.360, 0.100, 0.018), 0.0100, 0.0045, (0.100, 0.028, 0.008), 0.050),
+            ]
+        else:
+            epoch_keys = [
+                (1,   (0.015, 0.06, 0.36), (0.06, 0.22, 0.72), 0.012, 0.0055, (0.015, 0.05, 0.26), 0.06),
+                (48,  (0.012, 0.05, 0.30), (0.05, 0.18, 0.62), 0.011, 0.0050, (0.012, 0.04, 0.22), 0.05),
+                (97,  (0.010, 0.03, 0.22), (0.04, 0.12, 0.46), 0.010, 0.0045, (0.010, 0.03, 0.16), 0.05),
+                (145, (0.060, 0.01, 0.12), (0.20, 0.03, 0.08), 0.012, 0.0052, (0.050, 0.01, 0.09), 0.05),
+                (205, (0.080, 0.01, 0.08), (0.28, 0.04, 0.02), 0.013, 0.0058, (0.070, 0.01, 0.04), 0.06),
+                (265, (0.140, 0.03, 0.01), (0.36, 0.09, 0.015), 0.011, 0.0055, (0.100, 0.025, 0.01), 0.06),
+                (303, (0.150, 0.035, 0.01), (0.38, 0.10, 0.018), 0.011, 0.0052, (0.110, 0.03, 0.01), 0.06),
+                (345, (0.180, 0.05, 0.01), (0.44, 0.14, 0.022), 0.010, 0.0052, (0.130, 0.04, 0.01), 0.06),
+                (385, (0.160, 0.04, 0.01), (0.40, 0.12, 0.020), 0.010, 0.0048, (0.120, 0.035, 0.01), 0.06),
+                (480, (0.140, 0.032, 0.008), (0.36, 0.10, 0.018), 0.010, 0.0045, (0.100, 0.028, 0.008), 0.05),
+            ]
         for f, ca, cb, dens, em, bgc, bgs in epoch_keys:
             n_col_a.outputs[0].default_value = (*ca, 1.0)
             n_col_a.outputs[0].keyframe_insert("default_value", frame=f)
@@ -389,18 +409,136 @@ def setup_world_volume(scene, cfg, mode="scaffold"):
             n_bg.inputs["Strength"].default_value = bgs
             n_bg.inputs["Strength"].keyframe_insert("default_value", frame=f)
 
-        set_fcurve_interpolation_data(nt, "BEZIER")
-
         nt.links.new(n_texcoord.outputs["Object"], n_noise.inputs["Vector"])
         nt.links.new(n_noise.outputs["Fac"], n_col_mix.inputs["Factor"])
         nt.links.new(n_col_a.outputs[0], n_col_mix.inputs["A"])
         nt.links.new(n_col_b.outputs[0], n_col_mix.inputs["B"])
-        nt.links.new(n_col_mix.outputs["Result"], n_pv.inputs["Color"])
-        nt.links.new(n_col_mix.outputs["Result"], n_pv.inputs["Emission Color"])
-        nt.links.new(n_noise.outputs["Fac"], n_dens_mul.inputs[0])
-        nt.links.new(n_dens_mul.outputs["Value"], n_pv.inputs["Density"])
-        nt.links.new(n_noise.outputs["Fac"], n_em_mul.inputs[0])
-        nt.links.new(n_em_mul.outputs["Value"], n_pv.inputs["Emission Strength"])
+
+        if depth_on:
+            # Stage-gated large-scale billowing variation + View Z Depth atmospheric falloff
+            n_depth_gate = nt.nodes.new("ShaderNodeValue")
+            n_depth_gate.location = (-480, -340)
+            for f, gv in (
+                (1, 1.0), (48, 1.0), (97, 1.0), (145, 0.72),
+                (172, 0.0), (176, 0.0), (205, 0.0), (242, 0.0), (246, 0.0),
+                (264, 0.90), (303, 1.0), (359, 1.0), (384, 0.85),
+                (402, 0.0), (406, 0.0), (480, 0.0),
+            ):
+                n_depth_gate.outputs[0].default_value = gv
+                n_depth_gate.outputs[0].keyframe_insert("default_value", frame=f)
+
+            n_gate_clamp = nt.nodes.new("ShaderNodeClamp")
+            n_gate_clamp.location = (-260, -340)
+            nt.links.new(n_depth_gate.outputs[0], n_gate_clamp.inputs["Value"])
+
+            n_billow = nt.nodes.new("ShaderNodeTexNoise")
+            n_billow.location = (-480, -560)
+            n_billow.noise_dimensions = "4D"
+            n_billow.inputs["Scale"].default_value = dp.get("world_billow_scale", 0.028)
+            n_billow.inputs["Detail"].default_value = 2.5
+            n_billow.inputs["Roughness"].default_value = 0.55
+            n_billow.inputs["Distortion"].default_value = 0.45
+            n_billow.inputs["W"].default_value = 0.0
+            n_billow.inputs["W"].keyframe_insert("default_value", frame=f_start)
+            n_billow.inputs["W"].default_value = 1.1
+            n_billow.inputs["W"].keyframe_insert("default_value", frame=f_end)
+
+            n_bmap = nt.nodes.new("ShaderNodeMapRange")
+            n_bmap.location = (-240, -560)
+            n_bmap.clamp = True
+            n_bmap.inputs["From Min"].default_value = dp.get("world_billow_low", 0.48)
+            n_bmap.inputs["From Max"].default_value = dp.get("world_billow_high", 0.64)
+            n_bmap.inputs["To Min"].default_value = dp.get("world_gap_floor", 0.015)
+            n_bmap.inputs["To Max"].default_value = dp.get("world_billow_peak", 2.2)
+
+            n_wbmul = nt.nodes.new("ShaderNodeMath")
+            n_wbmul.location = (-40, -480)
+            n_wbmul.operation = "MULTIPLY"
+
+            n_camd = nt.nodes.new("ShaderNodeCameraData")
+            n_camd.location = (-480, -780)
+            n_zmap = nt.nodes.new("ShaderNodeMapRange")
+            n_zmap.location = (-240, -780)
+            n_zmap.clamp = True
+            n_zmap.inputs["From Min"].default_value = dp.get("world_falloff_start", 10.0)
+            n_zmap.inputs["From Max"].default_value = dp.get("world_falloff_end", 58.0)
+            n_zmap.inputs["To Min"].default_value = 0.0
+            n_zmap.inputs["To Max"].default_value = 1.0
+
+            n_far_dim = nt.nodes.new("ShaderNodeMix")
+            n_far_dim.location = (-40, -700)
+            n_far_dim.data_type = "FLOAT"
+            n_far_dim.clamp_factor = True
+            n_far_dim.inputs["A"].default_value = 1.0
+            n_far_dim.inputs["B"].default_value = dp.get("world_far_dim", 0.48)
+
+            n_depth_fac = nt.nodes.new("ShaderNodeMath")
+            n_depth_fac.location = (160, -560)
+            n_depth_fac.operation = "MULTIPLY"
+
+            n_fac_blend = nt.nodes.new("ShaderNodeMix")
+            n_fac_blend.location = (160, -340)
+            n_fac_blend.data_type = "FLOAT"
+            n_fac_blend.clamp_factor = True
+
+            n_eff_far = nt.nodes.new("ShaderNodeMath")
+            n_eff_far.location = (160, 260)
+            n_eff_far.operation = "MULTIPLY"
+
+            n_desat_mix = nt.nodes.new("ShaderNodeMix")
+            n_desat_mix.location = (160, 420)
+            n_desat_mix.data_type = "FLOAT"
+            n_desat_mix.clamp_factor = True
+            n_desat_mix.inputs["A"].default_value = 1.0
+            n_desat_mix.inputs["B"].default_value = 1.0 - dp.get("world_far_desat", 0.34)
+
+            n_val_mix = nt.nodes.new("ShaderNodeMix")
+            n_val_mix.location = (160, 580)
+            n_val_mix.data_type = "FLOAT"
+            n_val_mix.clamp_factor = True
+            n_val_mix.inputs["A"].default_value = 1.0
+            n_val_mix.inputs["B"].default_value = 0.78
+
+            n_hsv = nt.nodes.new("ShaderNodeHueSaturation")
+            n_hsv.location = (380, 220)
+
+            nt.links.new(n_texcoord.outputs["Object"], n_billow.inputs["Vector"])
+            nt.links.new(n_billow.outputs["Fac"], n_bmap.inputs["Value"])
+            nt.links.new(n_noise.outputs["Fac"], n_wbmul.inputs[0])
+            nt.links.new(n_bmap.outputs["Result"], n_wbmul.inputs[1])
+
+            nt.links.new(n_camd.outputs["View Z Depth"], n_zmap.inputs["Value"])
+            nt.links.new(n_zmap.outputs["Result"], n_far_dim.inputs["Factor"])
+            nt.links.new(n_wbmul.outputs["Value"], n_depth_fac.inputs[0])
+            nt.links.new(n_far_dim.outputs["Result"], n_depth_fac.inputs[1])
+
+            nt.links.new(n_gate_clamp.outputs["Result"], n_fac_blend.inputs["Factor"])
+            nt.links.new(n_noise.outputs["Fac"], n_fac_blend.inputs["A"])
+            nt.links.new(n_depth_fac.outputs["Value"], n_fac_blend.inputs["B"])
+
+            nt.links.new(n_zmap.outputs["Result"], n_eff_far.inputs[0])
+            nt.links.new(n_gate_clamp.outputs["Result"], n_eff_far.inputs[1])
+            nt.links.new(n_eff_far.outputs["Value"], n_desat_mix.inputs["Factor"])
+            nt.links.new(n_eff_far.outputs["Value"], n_val_mix.inputs["Factor"])
+            nt.links.new(n_col_mix.outputs["Result"], n_hsv.inputs["Color"])
+            nt.links.new(n_desat_mix.outputs["Result"], n_hsv.inputs["Saturation"])
+            nt.links.new(n_val_mix.outputs["Result"], n_hsv.inputs["Value"])
+
+            set_fcurve_interpolation_data(nt, "BEZIER")
+            nt.links.new(n_hsv.outputs["Color"], n_pv.inputs["Color"])
+            nt.links.new(n_hsv.outputs["Color"], n_pv.inputs["Emission Color"])
+            nt.links.new(n_fac_blend.outputs["Result"], n_dens_mul.inputs[0])
+            nt.links.new(n_dens_mul.outputs["Value"], n_pv.inputs["Density"])
+            nt.links.new(n_fac_blend.outputs["Result"], n_em_mul.inputs[0])
+            nt.links.new(n_em_mul.outputs["Value"], n_pv.inputs["Emission Strength"])
+        else:
+            set_fcurve_interpolation_data(nt, "BEZIER")
+            nt.links.new(n_col_mix.outputs["Result"], n_pv.inputs["Color"])
+            nt.links.new(n_col_mix.outputs["Result"], n_pv.inputs["Emission Color"])
+            nt.links.new(n_noise.outputs["Fac"], n_dens_mul.inputs[0])
+            nt.links.new(n_dens_mul.outputs["Value"], n_pv.inputs["Density"])
+            nt.links.new(n_noise.outputs["Fac"], n_em_mul.inputs[0])
+            nt.links.new(n_em_mul.outputs["Value"], n_pv.inputs["Emission Strength"])
 
     nt.links.new(n_bg.outputs["Background"], n_out.inputs["Surface"])
     nt.links.new(n_pv.outputs["Volume"], n_out.inputs["Volume"])
@@ -412,6 +550,8 @@ def build_volumetric_lights(scene, cfg, mode="scaffold"):
         return None
     col = ensure_collection("Volumetric_Lights")
     energies = cfg["full_look"]["core_light_energy_w"]
+    dp = cfg.get("depth_pass", {})
+    depth_on = bool(dp.get("enabled", False))
 
     light_data = bpy.data.lights.new("Core_Volumetric_Light", type="POINT")
     light_data.shadow_soft_size = 2.8
@@ -420,18 +560,37 @@ def build_volumetric_lights(scene, cfg, mode="scaffold"):
     light_obj.location = (0.0, 0.0, 0.0)
     link_to_collection(light_obj, col)
 
-    light_keys = [
-        (1,   (0.75, 0.88, 1.00), energies["planck"]),
-        (48,  (0.62, 0.84, 1.00), energies["planck"] * 0.85),
-        (97,  (0.38, 0.78, 1.00), energies["inflation"]),
-        (145, (0.92, 0.36, 0.55), energies["qgp"] * 0.85),
-        (205, (1.00, 0.42, 0.14), energies["qgp"]),
-        (265, (1.00, 0.54, 0.18), energies["hadrons"]),
-        (337, (1.00, 0.68, 0.24), energies["matter"] * 0.85),
-        (359, (1.00, 0.82, 0.42), energies["matter"]),
-        (385, (1.00, 0.48, 0.16), energies["neutrinos"]),
-        (480, (0.95, 0.38, 0.12), energies["neutrinos"]),
-    ]
+    if depth_on:
+        planck_e = dp["planck"]["core_light_energy_w"]
+        inf_e = dp["inflation"]["core_light_energy_w"]
+        light_keys = [
+            (1,   (0.82, 0.92, 1.00), planck_e),
+            (48,  (0.70, 0.88, 1.00), planck_e * 0.65),
+            (97,  (0.38, 0.78, 1.00), inf_e),
+            (145, (0.92, 0.36, 0.55), energies["qgp"] * 0.85),
+            (172, (0.96, 0.39, 0.36), energies["qgp"] * 0.925),
+            (205, (1.00, 0.42, 0.14), energies["qgp"]),
+            (246, (1.00, 0.50, 0.17), lerp(energies["qgp"], energies["hadrons"], 0.68)),
+            (265, (1.00, 0.54, 0.18), energies["hadrons"]),
+            (337, (1.00, 0.68, 0.24), energies["matter"] * 0.85),
+            (359, (1.00, 0.82, 0.42), energies["matter"]),
+            (385, (1.00, 0.48, 0.16), energies["neutrinos"]),
+            (402, (0.99, 0.46, 0.15), energies["neutrinos"]),
+            (480, (0.95, 0.38, 0.12), energies["neutrinos"]),
+        ]
+    else:
+        light_keys = [
+            (1,   (0.75, 0.88, 1.00), energies["planck"]),
+            (48,  (0.62, 0.84, 1.00), energies["planck"] * 0.85),
+            (97,  (0.38, 0.78, 1.00), energies["inflation"]),
+            (145, (0.92, 0.36, 0.55), energies["qgp"] * 0.85),
+            (205, (1.00, 0.42, 0.14), energies["qgp"]),
+            (265, (1.00, 0.54, 0.18), energies["hadrons"]),
+            (337, (1.00, 0.68, 0.24), energies["matter"] * 0.85),
+            (359, (1.00, 0.82, 0.42), energies["matter"]),
+            (385, (1.00, 0.48, 0.16), energies["neutrinos"]),
+            (480, (0.95, 0.38, 0.12), energies["neutrinos"]),
+        ]
     for f, col_rgb, en in light_keys:
         light_data.color = col_rgb
         light_data.keyframe_insert("color", frame=f)
@@ -443,6 +602,8 @@ def build_volumetric_lights(scene, cfg, mode="scaffold"):
 
 def setup_compositor(scene, cfg, mode="scaffold"):
     comp_cfg = cfg["compositor"]
+    dp = cfg.get("depth_pass", {})
+    depth_on = bool(dp.get("enabled", False)) and mode != "scaffold"
     scene.compositor_effects.clear()
 
     ng = bpy.data.node_groups.new("BigBang_Compositor", "CompositorNodeTree")
@@ -464,6 +625,24 @@ def setup_compositor(scene, cfg, mode="scaffold"):
     if mode == "scaffold":
         n_glare.inputs["Strength"].default_value = 0.28
         n_glare.inputs["Saturation"].default_value = 0.0
+    elif depth_on:
+        n_glare.inputs["Saturation"].default_value = 1.0
+        for f, val in (
+            (1, dp["planck"]["bloom_strength"]),
+            (48, 0.66),
+            (97, 0.52),
+            (145, 0.47),
+            (172, 0.46),
+            (205, 0.46),
+            (246, 0.46),
+            (303, 0.48),
+            (359, 0.58),
+            (402, 0.36),
+            (409, 0.34),
+            (480, 0.25),
+        ):
+            n_glare.inputs["Strength"].default_value = val
+            n_glare.inputs["Strength"].keyframe_insert("default_value", frame=f)
     else:
         n_glare.inputs["Saturation"].default_value = 1.0
         for f, val in (
@@ -486,9 +665,21 @@ def setup_compositor(scene, cfg, mode="scaffold"):
         n_streaks.inputs["Type"].default_value = "Streaks"
         n_streaks.inputs["Quality"].default_value = "High"
         n_streaks.inputs["Threshold"].default_value = comp_cfg.get("streaks_threshold", 3.4)
-        n_streaks.inputs["Strength"].default_value = comp_cfg.get("streaks_strength", 0.16)
         n_streaks.inputs["Streaks"].default_value = 4
         n_streaks.inputs["Fade"].default_value = 0.86
+        base_streak = comp_cfg.get("streaks_strength", 0.16)
+        if depth_on:
+            for f, val in (
+                (1, dp["planck"]["streaks_strength"]),
+                (48, 0.22),
+                (97, base_streak),
+                (172, base_streak),
+                (480, base_streak),
+            ):
+                n_streaks.inputs["Strength"].default_value = val
+                n_streaks.inputs["Strength"].keyframe_insert("default_value", frame=f)
+        else:
+            n_streaks.inputs["Strength"].default_value = base_streak
 
     # 2. Subtle Lens Distortion & Chromatic Aberration
     n_lens = ng.nodes.new("CompositorNodeLensdist")
@@ -590,9 +781,31 @@ def build_camera_rig(scene, cfg):
         cam_data.dof.focus_distance = focus_dist
         cam_data.dof.keyframe_insert("focus_distance", frame=f)
 
+    dp = cfg.get("depth_pass", {})
+    if dp.get("enabled", False):
+        ap = dp.get("stage_aperture_fstop", {})
+        for f, fstop in (
+            (1, ap.get("planck", 0.95)),
+            (48, ap.get("planck", 0.95)),
+            (64, ap.get("inflation", 1.05)),
+            (148, ap.get("inflation", 1.05)),
+            (172, ap.get("qgp", 2.4)),
+            (205, ap.get("qgp", 2.4)),
+            (246, ap.get("qgp", 2.4)),
+            (264, ap.get("hadrons", 1.30)),
+            (336, ap.get("hadrons", 1.30)),
+            (345, ap.get("matter", 1.30)),
+            (382, ap.get("matter", 1.30)),
+            (402, ap.get("neutrinos", 2.4)),
+            (480, ap.get("neutrinos", 2.4)),
+        ):
+            cam_data.dof.aperture_fstop = fstop
+            cam_data.dof.keyframe_insert("aperture_fstop", frame=f)
+
     set_fcurve_interpolation(cam_obj, "BEZIER")
     set_fcurve_interpolation(target_empty, "BEZIER")
     set_fcurve_interpolation(cam_data, "BEZIER")
+    set_fcurve_interpolation_data(cam_data, "BEZIER")
     return cam_obj, target_empty
 
 
@@ -680,6 +893,7 @@ def make_emissive_material(
     attr_type="GEOMETRY",
     alpha_attr_name=None,
     alpha_attr_power=1.0,
+    distance_fade=None,
 ):
     mat = bpy.data.materials.new(name)
     mat.surface_render_method = "BLENDED"
@@ -693,6 +907,7 @@ def make_emissive_material(
     n_em.inputs["Strength"].default_value = strength
     n_mix.inputs["Fac"].default_value = 1.0
 
+    col_socket = None
     if attr_name and attr_ramp:
         n_attr = nt.nodes.new("ShaderNodeAttribute")
         n_attr.attribute_type = attr_type
@@ -708,7 +923,7 @@ def make_emissive_material(
             el = cr.elements.new(pos)
             el.color = (*col_rgb, 1.0)
         nt.links.new(n_attr.outputs["Fac"], n_ramp.inputs["Fac"])
-        nt.links.new(n_ramp.outputs["Color"], n_em.inputs["Color"])
+        col_socket = n_ramp.outputs["Color"]
 
     n_alpha_gate = nt.nodes.new("ShaderNodeValue")
     n_alpha_gate.outputs[0].default_value = 1.0
@@ -727,18 +942,78 @@ def make_emissive_material(
         nt.links.new(n_aattr.outputs["Fac"], n_apow.inputs[0])
         nt.links.new(n_apow.outputs["Value"], n_amul.inputs[0])
         nt.links.new(n_alpha_gate.outputs[0], n_amul.inputs[1])
-        nt.links.new(n_amul.outputs["Value"], n_mix.inputs["Fac"])
+        alpha_socket = n_amul.outputs["Value"]
     else:
-        nt.links.new(n_alpha_gate.outputs[0], n_mix.inputs["Fac"])
+        alpha_socket = n_alpha_gate.outputs[0]
 
+    n_em_base = None
+    if distance_fade is not None:
+        start_m, end_m, far_alpha, far_em, far_desat = distance_fade
+        n_camd = nt.nodes.new("ShaderNodeCameraData")
+        n_zmap = nt.nodes.new("ShaderNodeMapRange")
+        n_zmap.clamp = True
+        n_zmap.inputs["From Min"].default_value = start_m
+        n_zmap.inputs["From Max"].default_value = end_m
+        n_zmap.inputs["To Min"].default_value = 0.0
+        n_zmap.inputs["To Max"].default_value = 1.0
+        nt.links.new(n_camd.outputs["View Z Depth"], n_zmap.inputs["Value"])
+
+        n_amix = nt.nodes.new("ShaderNodeMix")
+        n_amix.data_type = "FLOAT"
+        n_amix.clamp_factor = True
+        n_amix.inputs["A"].default_value = 1.0
+        n_amix.inputs["B"].default_value = far_alpha
+        nt.links.new(n_zmap.outputs["Result"], n_amix.inputs["Factor"])
+
+        n_afade = nt.nodes.new("ShaderNodeMath")
+        n_afade.operation = "MULTIPLY"
+        n_afade.use_clamp = True
+        nt.links.new(alpha_socket, n_afade.inputs[0])
+        nt.links.new(n_amix.outputs["Result"], n_afade.inputs[1])
+        alpha_socket = n_afade.outputs["Value"]
+
+        n_em_base = nt.nodes.new("ShaderNodeValue")
+        n_em_base.outputs[0].default_value = strength
+        n_emix = nt.nodes.new("ShaderNodeMix")
+        n_emix.data_type = "FLOAT"
+        n_emix.clamp_factor = True
+        n_emix.inputs["A"].default_value = 1.0
+        n_emix.inputs["B"].default_value = far_em
+        nt.links.new(n_zmap.outputs["Result"], n_emix.inputs["Factor"])
+
+        n_emul = nt.nodes.new("ShaderNodeMath")
+        n_emul.operation = "MULTIPLY"
+        nt.links.new(n_em_base.outputs[0], n_emul.inputs[0])
+        nt.links.new(n_emix.outputs["Result"], n_emul.inputs[1])
+        nt.links.new(n_emul.outputs["Value"], n_em.inputs["Strength"])
+
+        n_des = nt.nodes.new("ShaderNodeMix")
+        n_des.data_type = "FLOAT"
+        n_des.clamp_factor = True
+        n_des.inputs["A"].default_value = 1.0
+        n_des.inputs["B"].default_value = 1.0 - far_desat
+        nt.links.new(n_zmap.outputs["Result"], n_des.inputs["Factor"])
+
+        n_hsv = nt.nodes.new("ShaderNodeHueSaturation")
+        if col_socket is not None:
+            nt.links.new(col_socket, n_hsv.inputs["Color"])
+        else:
+            n_hsv.inputs["Color"].default_value = (*color_rgb, 1.0)
+        nt.links.new(n_des.outputs["Result"], n_hsv.inputs["Saturation"])
+        col_socket = n_hsv.outputs["Color"]
+
+    if col_socket is not None:
+        nt.links.new(col_socket, n_em.inputs["Color"])
+    nt.links.new(alpha_socket, n_mix.inputs["Fac"])
     nt.links.new(n_trans.outputs["BSDF"], n_mix.inputs[1])
     nt.links.new(n_em.outputs["Emission"], n_mix.inputs[2])
     nt.links.new(n_mix.outputs["Shader"], n_out.inputs["Surface"])
 
     if keyframed_strengths:
+        str_target = n_em_base.outputs[0] if n_em_base is not None else n_em.inputs["Strength"]
         for frame, val in keyframed_strengths:
-            n_em.inputs["Strength"].default_value = val
-            n_em.inputs["Strength"].keyframe_insert("default_value", frame=frame)
+            str_target.default_value = val
+            str_target.keyframe_insert("default_value", frame=frame)
     if alpha_weights:
         for frame, val in alpha_weights:
             n_alpha_gate.outputs[0].default_value = val
@@ -929,6 +1204,7 @@ def make_rich_volume_material(
     density_keyframes=None,
     emission_keyframes=None,
     cfg=None,
+    depth_cfg=None,
 ):
     if ramp_stops is None:
         ramp_stops = [
@@ -1046,10 +1322,11 @@ def make_rich_volume_material(
 
     n_dens_remap = nt.nodes.new("ShaderNodeMapRange")
     n_dens_remap.location = (-60, 40)
+    n_dens_remap.clamp = True
     n_dens_remap.inputs["From Min"].default_value = dens_range[0]
     n_dens_remap.inputs["From Max"].default_value = dens_range[1]
-    n_dens_remap.inputs["To Min"].default_value = 0.14
-    n_dens_remap.inputs["To Max"].default_value = 1.45
+    n_dens_remap.inputs["To Min"].default_value = 0.03 if depth_cfg else 0.14
+    n_dens_remap.inputs["To Max"].default_value = 1.55 if depth_cfg else 1.45
 
     n_em_pow = nt.nodes.new("ShaderNodeMath")
     n_em_pow.location = (-60, -400)
@@ -1084,20 +1361,123 @@ def make_rich_volume_material(
     nt.links.new(tex_out, n_dens_remap.inputs["Value"])
     nt.links.new(n_dens_remap.outputs["Result"], n_em_pow.inputs[0])
 
-    nt.links.new(n_ramp.outputs["Color"], n_pv.inputs["Color"])
-    nt.links.new(n_ramp.outputs["Color"], n_pv.inputs["Emission Color"])
-
     nt.links.new(mask_socket, n_dens_mask.inputs[0])
     nt.links.new(n_dens_remap.outputs["Result"], n_dens_mask.inputs[1])
-    nt.links.new(n_dens_mask.outputs["Value"], n_dens_final.inputs[0])
-    nt.links.new(n_dens_gain.outputs[0], n_dens_final.inputs[1])
-    nt.links.new(n_dens_final.outputs["Value"], n_pv.inputs["Density"])
-
     nt.links.new(mask_socket, n_em_mask.inputs[0])
     nt.links.new(n_em_pow.outputs["Value"], n_em_mask.inputs[1])
-    nt.links.new(n_em_mask.outputs["Value"], n_em_final.inputs[0])
-    nt.links.new(n_em_gain.outputs[0], n_em_final.inputs[1])
-    nt.links.new(n_em_final.outputs["Value"], n_pv.inputs["Emission Strength"])
+
+    if depth_cfg:
+        # Large-scale billowing clouds + thinner dark gaps + Camera View Z Depth falloff
+        n_billow = nt.nodes.new("ShaderNodeTexNoise")
+        n_billow.location = (-600, -560)
+        n_billow.noise_dimensions = "4D"
+        n_billow.inputs["Scale"].default_value = depth_cfg.get("billow_scale", 0.05)
+        n_billow.inputs["Detail"].default_value = 2.5
+        n_billow.inputs["Roughness"].default_value = 0.55
+        n_billow.inputs["Distortion"].default_value = 0.45
+        n_billow.inputs["W"].default_value = 0.0
+        n_billow.inputs["W"].keyframe_insert("default_value", frame=f_start)
+        n_billow.inputs["W"].default_value = noise_speed * 0.65
+        n_billow.inputs["W"].keyframe_insert("default_value", frame=f_end)
+
+        n_bmap = nt.nodes.new("ShaderNodeMapRange")
+        n_bmap.location = (-360, -560)
+        n_bmap.clamp = True
+        n_bmap.inputs["From Min"].default_value = depth_cfg.get("billow_low", 0.38)
+        n_bmap.inputs["From Max"].default_value = depth_cfg.get("billow_high", 0.68)
+        n_bmap.inputs["To Min"].default_value = depth_cfg.get("gap_floor", 0.04)
+        n_bmap.inputs["To Max"].default_value = depth_cfg.get("billow_peak", 2.15)
+
+        n_bpow = nt.nodes.new("ShaderNodeMath")
+        n_bpow.location = (-160, -560)
+        n_bpow.operation = "POWER"
+        n_bpow.inputs[1].default_value = 1.35
+
+        n_camd = nt.nodes.new("ShaderNodeCameraData")
+        n_camd.location = (-600, -780)
+        n_zmap = nt.nodes.new("ShaderNodeMapRange")
+        n_zmap.location = (-360, -780)
+        n_zmap.clamp = True
+        n_zmap.inputs["From Min"].default_value = depth_cfg.get("falloff_start", 7.0)
+        n_zmap.inputs["From Max"].default_value = depth_cfg.get("falloff_end", 32.0)
+        n_zmap.inputs["To Min"].default_value = 0.0
+        n_zmap.inputs["To Max"].default_value = 1.0
+
+        n_far_dim = nt.nodes.new("ShaderNodeMix")
+        n_far_dim.location = (-160, -780)
+        n_far_dim.data_type = "FLOAT"
+        n_far_dim.clamp_factor = True
+        n_far_dim.inputs["A"].default_value = 1.0
+        n_far_dim.inputs["B"].default_value = depth_cfg.get("far_dim", 0.36)
+
+        n_far_desat = nt.nodes.new("ShaderNodeMix")
+        n_far_desat.location = (180, -640)
+        n_far_desat.data_type = "FLOAT"
+        n_far_desat.clamp_factor = True
+        n_far_desat.inputs["A"].default_value = 1.0
+        n_far_desat.inputs["B"].default_value = 1.0 - depth_cfg.get("far_desat", 0.30)
+
+        n_far_val = nt.nodes.new("ShaderNodeMix")
+        n_far_val.location = (180, -800)
+        n_far_val.data_type = "FLOAT"
+        n_far_val.clamp_factor = True
+        n_far_val.inputs["A"].default_value = 1.0
+        n_far_val.inputs["B"].default_value = 0.72
+
+        n_hsv = nt.nodes.new("ShaderNodeHueSaturation")
+        n_hsv.location = (400, -60)
+
+        n_dbil = nt.nodes.new("ShaderNodeMath")
+        n_dbil.location = (290, 140)
+        n_dbil.operation = "MULTIPLY"
+
+        n_ebil = nt.nodes.new("ShaderNodeMath")
+        n_ebil.location = (290, -240)
+        n_ebil.operation = "MULTIPLY"
+
+        n_efar = nt.nodes.new("ShaderNodeMath")
+        n_efar.location = (290, -380)
+        n_efar.operation = "MULTIPLY"
+
+        nt.links.new(n_tc.outputs["Object"], n_billow.inputs["Vector"])
+        nt.links.new(n_billow.outputs["Fac"], n_bmap.inputs["Value"])
+        nt.links.new(n_bmap.outputs["Result"], n_bpow.inputs[0])
+
+        nt.links.new(n_camd.outputs["View Z Depth"], n_zmap.inputs["Value"])
+        nt.links.new(n_zmap.outputs["Result"], n_far_dim.inputs["Factor"])
+        nt.links.new(n_zmap.outputs["Result"], n_far_desat.inputs["Factor"])
+        nt.links.new(n_zmap.outputs["Result"], n_far_val.inputs["Factor"])
+
+        nt.links.new(n_ramp.outputs["Color"], n_hsv.inputs["Color"])
+        nt.links.new(n_far_desat.outputs["Result"], n_hsv.inputs["Saturation"])
+        nt.links.new(n_far_val.outputs["Result"], n_hsv.inputs["Value"])
+        nt.links.new(n_hsv.outputs["Color"], n_pv.inputs["Color"])
+        nt.links.new(n_hsv.outputs["Color"], n_pv.inputs["Emission Color"])
+
+        nt.links.new(n_dens_mask.outputs["Value"], n_dbil.inputs[0])
+        nt.links.new(n_bpow.outputs["Value"], n_dbil.inputs[1])
+        nt.links.new(n_dbil.outputs["Value"], n_dens_final.inputs[0])
+        nt.links.new(n_dens_gain.outputs[0], n_dens_final.inputs[1])
+        nt.links.new(n_dens_final.outputs["Value"], n_pv.inputs["Density"])
+
+        nt.links.new(n_em_mask.outputs["Value"], n_ebil.inputs[0])
+        nt.links.new(n_bpow.outputs["Value"], n_ebil.inputs[1])
+        nt.links.new(n_ebil.outputs["Value"], n_efar.inputs[0])
+        nt.links.new(n_far_dim.outputs["Result"], n_efar.inputs[1])
+        nt.links.new(n_efar.outputs["Value"], n_em_final.inputs[0])
+        nt.links.new(n_em_gain.outputs[0], n_em_final.inputs[1])
+        nt.links.new(n_em_final.outputs["Value"], n_pv.inputs["Emission Strength"])
+    else:
+        nt.links.new(n_ramp.outputs["Color"], n_pv.inputs["Color"])
+        nt.links.new(n_ramp.outputs["Color"], n_pv.inputs["Emission Color"])
+
+        nt.links.new(n_dens_mask.outputs["Value"], n_dens_final.inputs[0])
+        nt.links.new(n_dens_gain.outputs[0], n_dens_final.inputs[1])
+        nt.links.new(n_dens_final.outputs["Value"], n_pv.inputs["Density"])
+
+        nt.links.new(n_em_mask.outputs["Value"], n_em_final.inputs[0])
+        nt.links.new(n_em_gain.outputs[0], n_em_final.inputs[1])
+        nt.links.new(n_em_final.outputs["Value"], n_pv.inputs["Emission Strength"])
 
     nt.links.new(n_pv.outputs["Volume"], n_out.inputs["Volume"])
 
@@ -1125,6 +1505,7 @@ def make_plasma_orb_material(
     attr_ramp=None,
     attr_type="GEOMETRY",
     power=2.2,
+    distance_fade=None,
 ):
     mat = bpy.data.materials.new(name)
     mat.surface_render_method = "BLENDED"
@@ -1188,7 +1569,6 @@ def make_plasma_orb_material(
         n_cmix.inputs["A"].default_value = (*edge_rgb, 1.0)
 
     nt.links.new(n_pow.outputs["Value"], n_cmix.inputs["Factor"])
-    nt.links.new(n_cmix.outputs["Result"], n_em.inputs["Color"])
 
     # Alpha = Facing^power * stage_alpha_gate
     n_alpha_gate = nt.nodes.new("ShaderNodeValue")
@@ -1202,16 +1582,75 @@ def make_plasma_orb_material(
 
     nt.links.new(n_pow.outputs["Value"], n_alpha_mul.inputs[0])
     nt.links.new(n_alpha_gate.outputs[0], n_alpha_mul.inputs[1])
-    nt.links.new(n_alpha_mul.outputs["Value"], n_mix_s.inputs["Fac"])
+
+    col_out = n_cmix.outputs["Result"]
+    alpha_out = n_alpha_mul.outputs["Value"]
+    n_em_base = None
+
+    if distance_fade is not None:
+        start_m, end_m, far_alpha, far_em, far_desat = distance_fade
+        n_camd = nt.nodes.new("ShaderNodeCameraData")
+        n_zmap = nt.nodes.new("ShaderNodeMapRange")
+        n_zmap.clamp = True
+        n_zmap.inputs["From Min"].default_value = start_m
+        n_zmap.inputs["From Max"].default_value = end_m
+        n_zmap.inputs["To Min"].default_value = 0.0
+        n_zmap.inputs["To Max"].default_value = 1.0
+        nt.links.new(n_camd.outputs["View Z Depth"], n_zmap.inputs["Value"])
+
+        n_amix = nt.nodes.new("ShaderNodeMix")
+        n_amix.data_type = "FLOAT"
+        n_amix.clamp_factor = True
+        n_amix.inputs["A"].default_value = 1.0
+        n_amix.inputs["B"].default_value = far_alpha
+        nt.links.new(n_zmap.outputs["Result"], n_amix.inputs["Factor"])
+
+        n_afade = nt.nodes.new("ShaderNodeMath")
+        n_afade.operation = "MULTIPLY"
+        n_afade.use_clamp = True
+        nt.links.new(alpha_out, n_afade.inputs[0])
+        nt.links.new(n_amix.outputs["Result"], n_afade.inputs[1])
+        alpha_out = n_afade.outputs["Value"]
+
+        n_em_base = nt.nodes.new("ShaderNodeValue")
+        n_em_base.outputs[0].default_value = strength
+        n_emix = nt.nodes.new("ShaderNodeMix")
+        n_emix.data_type = "FLOAT"
+        n_emix.clamp_factor = True
+        n_emix.inputs["A"].default_value = 1.0
+        n_emix.inputs["B"].default_value = far_em
+        nt.links.new(n_zmap.outputs["Result"], n_emix.inputs["Factor"])
+
+        n_emul = nt.nodes.new("ShaderNodeMath")
+        n_emul.operation = "MULTIPLY"
+        nt.links.new(n_em_base.outputs[0], n_emul.inputs[0])
+        nt.links.new(n_emix.outputs["Result"], n_emul.inputs[1])
+        nt.links.new(n_emul.outputs["Value"], n_em.inputs["Strength"])
+
+        n_des = nt.nodes.new("ShaderNodeMix")
+        n_des.data_type = "FLOAT"
+        n_des.clamp_factor = True
+        n_des.inputs["A"].default_value = 1.0
+        n_des.inputs["B"].default_value = 1.0 - far_desat
+        nt.links.new(n_zmap.outputs["Result"], n_des.inputs["Factor"])
+
+        n_hsv = nt.nodes.new("ShaderNodeHueSaturation")
+        nt.links.new(col_out, n_hsv.inputs["Color"])
+        nt.links.new(n_des.outputs["Result"], n_hsv.inputs["Saturation"])
+        col_out = n_hsv.outputs["Color"]
+
+    nt.links.new(col_out, n_em.inputs["Color"])
+    nt.links.new(alpha_out, n_mix_s.inputs["Fac"])
 
     nt.links.new(n_trans.outputs["BSDF"], n_mix_s.inputs[1])
     nt.links.new(n_em.outputs["Emission"], n_mix_s.inputs[2])
     nt.links.new(n_mix_s.outputs["Shader"], n_out.inputs["Surface"])
 
     if keyframed_strengths:
+        str_target = n_em_base.outputs[0] if n_em_base is not None else n_em.inputs["Strength"]
         for f, val in keyframed_strengths:
-            n_em.inputs["Strength"].default_value = val
-            n_em.inputs["Strength"].keyframe_insert("default_value", frame=f)
+            str_target.default_value = val
+            str_target.keyframe_insert("default_value", frame=f)
     if alpha_weights:
         for f, val in alpha_weights:
             n_alpha_gate.outputs[0].default_value = val
@@ -1315,6 +1754,156 @@ def create_volume_sphere(name, col, radius, mat, subdivisions=3, active_frame_ra
         for f, hidden in keys:
             obj.hide_render = hidden
             obj.keyframe_insert("hide_render", frame=f)
+    return obj
+
+
+def build_foreground_drifters(
+    name,
+    col,
+    cfg,
+    stage_key,
+    u_start,
+    u_end,
+    hide_frames,
+    core_rgb,
+    edge_rgb,
+    count=30,
+    seed=101,
+    strength=2.2,
+    alpha_peak=0.68,
+    depth_range=(2.2, 4.8),
+    radius_range=(0.055, 0.13),
+):
+    rng = random.Random(seed)
+    world_up = Vector((0.0, 0.0, 1.0))
+    verts = []
+    scales = []
+
+    for i in range(count):
+        u_s = u_start + (i / max(1, count)) * (u_end - u_start)
+        pos, tgt, _, _ = get_camera_pose(u_s, cfg)
+        fwd = (tgt - pos).normalized()
+        right = fwd.cross(world_up).normalized()
+        up = right.cross(fwd).normalized()
+
+        depth = rng.uniform(depth_range[0], depth_range[1])
+        ux, uy = 0.0, 0.0
+        for _ in range(12):
+            ux = rng.uniform(-0.56, 0.56)
+            uy = rng.uniform(-0.33, 0.33)
+            if (ux * ux + uy * uy) >= 0.08:
+                break
+        p = pos + fwd * depth + right * (ux * depth) + up * (uy * depth)
+        verts.append((p.x, p.y, p.z))
+        scales.append(rng.uniform(radius_range[0], radius_range[1]))
+
+    mesh = bpy.data.meshes.new(f"{name}_Mesh")
+    mesh.from_pydata(verts, [], [])
+    mesh.update()
+    attr_sc = mesh.attributes.new("drifter_scale", "FLOAT", "POINT")
+    attr_sc.data.foreach_set("value", scales)
+
+    obj = bpy.data.objects.new(name, mesh)
+    obj.visible_shadow = False
+    link_to_collection(obj, col)
+    for f, hidden in hide_frames:
+        obj.hide_render = hidden
+        obj.keyframe_insert("hide_render", frame=f)
+
+    orb_mat = make_plasma_orb_material(
+        f"{name}_Mat",
+        core_rgb=core_rgb,
+        edge_rgb=edge_rgb,
+        strength=strength,
+        keyframed_strengths=sample_stage_envelope(stage_key, cfg, strength, rest_val=0.0),
+        alpha_weights=sample_stage_envelope(stage_key, cfg, alpha_peak, rest_val=0.0),
+        power=3.0,
+    )
+
+    ng = bpy.data.node_groups.new(f"{name}_GN", "GeometryNodeTree")
+    ng.interface.new_socket(name="Geometry", in_out="INPUT", socket_type="NodeSocketGeometry")
+    ng.interface.new_socket(name="Geometry", in_out="OUTPUT", socket_type="NodeSocketGeometry")
+
+    n_in = ng.nodes.new("NodeGroupInput")
+    n_out = ng.nodes.new("NodeGroupOutput")
+    n_pos = ng.nodes.new("GeometryNodeInputPosition")
+    n_time = ng.nodes.new("GeometryNodeInputSceneTime")
+
+    n_tmul = ng.nodes.new("ShaderNodeMath")
+    n_tmul.operation = "MULTIPLY"
+    n_tmul.inputs[1].default_value = 0.28
+
+    n_noise = ng.nodes.new("ShaderNodeTexNoise")
+    n_noise.noise_dimensions = "4D"
+    n_noise.inputs["Scale"].default_value = 0.25
+    n_noise.inputs["Detail"].default_value = 2.0
+
+    n_sub = ng.nodes.new("ShaderNodeVectorMath")
+    n_sub.operation = "SUBTRACT"
+    n_sub.inputs[1].default_value = (0.5, 0.5, 0.5)
+
+    n_amp = ng.nodes.new("ShaderNodeVectorMath")
+    n_amp.operation = "SCALE"
+    n_amp.inputs["Scale"].default_value = 0.85
+
+    n_setpos = ng.nodes.new("GeometryNodeSetPosition")
+
+    n_sc_in = ng.nodes.new("GeometryNodeInputNamedAttribute")
+    n_sc_in.data_type = "FLOAT"
+    n_sc_in.inputs["Name"].default_value = "drifter_scale"
+
+    cam_obj = bpy.context.scene.camera
+    if cam_obj is not None:
+        n_anim_pos = ng.nodes.new("GeometryNodeInputPosition")
+        n_cam = ng.nodes.new("GeometryNodeObjectInfo")
+        n_cam.transform_space = "RELATIVE"
+        n_cam.inputs["Object"].default_value = cam_obj
+
+        n_dist = ng.nodes.new("ShaderNodeVectorMath")
+        n_dist.operation = "DISTANCE"
+        n_cfade = ng.nodes.new("ShaderNodeMapRange")
+        n_cfade.clamp = True
+        n_cfade.inputs["From Min"].default_value = 1.4
+        n_cfade.inputs["From Max"].default_value = 2.4
+        n_cfade.inputs["To Min"].default_value = 0.0
+        n_cfade.inputs["To Max"].default_value = 1.0
+
+        n_sc_mul = ng.nodes.new("ShaderNodeMath")
+        n_sc_mul.operation = "MULTIPLY"
+
+        ng.links.new(n_anim_pos.outputs["Position"], n_dist.inputs[0])
+        ng.links.new(n_cam.outputs["Location"], n_dist.inputs[1])
+        ng.links.new(n_dist.outputs["Value"], n_cfade.inputs["Value"])
+        ng.links.new(n_sc_in.outputs["Attribute"], n_sc_mul.inputs[0])
+        ng.links.new(n_cfade.outputs["Result"], n_sc_mul.inputs[1])
+        sc_sock = n_sc_mul.outputs["Value"]
+    else:
+        sc_sock = n_sc_in.outputs["Attribute"]
+
+    n_ico = ng.nodes.new("GeometryNodeMeshIcoSphere")
+    n_ico.inputs["Radius"].default_value = 1.0
+    n_ico.inputs["Subdivisions"].default_value = 2
+
+    n_inst = ng.nodes.new("GeometryNodeInstanceOnPoints")
+    n_setmat = ng.nodes.new("GeometryNodeSetMaterial")
+    n_setmat.inputs["Material"].default_value = orb_mat
+
+    ng.links.new(n_time.outputs["Seconds"], n_tmul.inputs[0])
+    ng.links.new(n_pos.outputs["Position"], n_noise.inputs["Vector"])
+    ng.links.new(n_tmul.outputs["Value"], n_noise.inputs["W"])
+    ng.links.new(n_noise.outputs["Color"], n_sub.inputs[0])
+    ng.links.new(n_sub.outputs["Vector"], n_amp.inputs[0])
+    ng.links.new(n_in.outputs["Geometry"], n_setpos.inputs["Geometry"])
+    ng.links.new(n_amp.outputs["Vector"], n_setpos.inputs["Offset"])
+
+    ng.links.new(n_setpos.outputs["Geometry"], n_inst.inputs["Points"])
+    ng.links.new(add_shade_smooth(ng, n_ico.outputs["Mesh"]), n_inst.inputs["Instance"])
+    ng.links.new(sc_sock, n_inst.inputs["Scale"])
+    ng.links.new(n_inst.outputs["Instances"], n_setmat.inputs["Geometry"])
+    ng.links.new(n_setmat.outputs["Geometry"], n_out.inputs["Geometry"])
+
+    mod = obj.modifiers.new("FGDriftersGN", "NODES")
+    mod.node_group = ng
     return obj
 
 

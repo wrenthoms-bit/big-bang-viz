@@ -38,6 +38,9 @@ Procedural, script-driven Blender 5.3 animation matching the story, timings, pal
 # Build & render Milestone 4 1080p24 CLEAN + LABELLED finals (PNGs + ProRes 422 HQ + H.264 MP4)
 /Applications/Blender.app/Contents/MacOS/Blender -b -P blender/build_scene.py -- --mode full --profile final_1080p
 /Applications/Blender.app/Contents/MacOS/Blender -b -P blender/render_final.py -- --profile final_1080p
+
+# Selective re-render by frame ranges + full re-encode (used for Volumetric Depth Pass Option B)
+/Applications/Blender.app/Contents/MacOS/Blender -b -P blender/render_final.py -- --profile final_1080p --ranges 1-172,246-402 --overwrite
 ```
 
 ### Final Deliverables (`blender/renders/`)
@@ -59,5 +62,6 @@ Procedural, script-driven Blender 5.3 animation matching the story, timings, pal
 - **Milestone 3 (`preview_720p`, `1280×720` EEVEE, 16 samples, tile size 8, 48 vol samples + HUD composite)**:
   - **0.969 s / frame** average across the 468 main pass frames (`0.681 s` min, `1.594 s` max; `453.3 s` / `~7.6 min`, following the 12-frame transition gate at `1.103 s / frame` / `13.2 s`), plus contact sheet and `17 MB` `1280×720` `24 fps` H.264 `.mp4` encode (`milestone3_preview_720p.mp4`).
 - **Milestone 4 (`final_1080p`, `1920×1080 @ 24 fps` EEVEE, 32 samples, tile size 4, 64 vol samples, `CLEAN` + `LABELLED` passes)**:
-  - **4.283 s / frame** average across all 480 frames (`3.069 s` min, `5.911 s` max; rendered in `2056.0 s` / `34.3 min`).
-  - Encoding via Blender VSE FFmpeg: **22.3 s** for `CLEAN` (`big_bang_1080p24_clean.mp4` `30 MB` + `big_bang_1080p24_clean_prores422hq.mov` `567 MB`) and **22.8 s** for `LABELLED` (`big_bang_1080p24_labelled.mp4` `28 MB` + `big_bang_1080p24_labelled_prores422hq.mov` `569 MB`).
+  - **Baseline full 480-frame render**: **4.283 s / frame** average (`3.069 s` min, `5.911 s` max; `2056.0 s` / `34.3 min` render, plus `22.3 s` / `22.8 s` CLEAN/LABELLED encodes).
+  - **Volumetric Depth Pass — Option B (`--ranges 1-172,246-402`, `329` frames for Stages 1, 2, 4 & 5; Stages 3 & 6 untouched)**: **6.063 s / frame** average (`4.306 s` min, `7.782 s` max; `1994.6 s` / `~33.2 min` render).
+  - **Updated master video encodes (Blender VSE FFmpeg)**: **22.9 s** for `CLEAN` (`big_bang_1080p24_clean.mp4` `23 MB` + `big_bang_1080p24_clean_prores422hq.mov` `546 MB`) and **22.3 s** for `LABELLED` (`big_bang_1080p24_labelled.mp4` `22 MB` + `big_bang_1080p24_labelled_prores422hq.mov` `551 MB`).

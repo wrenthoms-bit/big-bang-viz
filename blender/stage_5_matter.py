@@ -344,18 +344,34 @@ def build(scene, cfg, mode="scaffold"):
 
     # Full cinematic look-development mode
     fl = cfg["full_look"]["matter"]
+    dp = cfg.get("depth_pass", {})
+    depth_on = bool(dp.get("enabled", False))
+    dp_m = dp.get("matter", {}) if depth_on else {}
     c_gold = (1.00, 0.48, 0.04)
     c_cyan = (0.06, 0.78, 1.00)
     c_flash = (1.00, 0.94, 0.80)
 
-    matter_ramp = [
-        (0.16, (0.20, 0.040, 0.008)),
-        (0.46, (0.66, 0.220, 0.030)),
-        (0.74, (0.98, 0.520, 0.100)),
-        (0.94, (1.00, 0.860, 0.460)),
-    ]
-    dens_keys = utils.sample_stage_envelope("matter", cfg, fl["shell_density"], rest_val=0.0)
-    em_keys = utils.sample_stage_envelope("matter", cfg, fl["shell_emission"], rest_val=0.0)
+    if depth_on:
+        matter_ramp = [
+            (0.14, (0.04, 0.008, 0.002)),
+            (0.46, (0.66, 0.220, 0.030)),
+            (0.74, (0.98, 0.520, 0.100)),
+            (0.94, (1.00, 0.860, 0.460)),
+        ]
+        shell_dens_peak = dp_m.get("shell_density", fl["shell_density"])
+        shell_em_peak = dp_m.get("shell_emission", fl["shell_emission"])
+    else:
+        matter_ramp = [
+            (0.16, (0.20, 0.040, 0.008)),
+            (0.46, (0.66, 0.220, 0.030)),
+            (0.74, (0.98, 0.520, 0.100)),
+            (0.94, (1.00, 0.860, 0.460)),
+        ]
+        shell_dens_peak = fl["shell_density"]
+        shell_em_peak = fl["shell_emission"]
+
+    dens_keys = utils.sample_stage_envelope("matter", cfg, shell_dens_peak, rest_val=0.0)
+    em_keys = utils.sample_stage_envelope("matter", cfg, shell_em_peak, rest_val=0.0)
     vol_mat = utils.make_rich_volume_material(
         "Stage5_Matter_VolMat",
         inner_r=57.0,
@@ -373,8 +389,26 @@ def build(scene, cfg, mode="scaffold"):
         density_keyframes=dens_keys,
         emission_keyframes=em_keys,
         cfg=cfg,
+        depth_cfg=dp_m if depth_on else None,
     )
     utils.create_volume_sphere("Matter_Shell_Volume", col, radius=84.5, mat=vol_mat, subdivisions=3, active_frame_range=(322, 402))
+
+    if depth_on and dp_m.get("fg_bokeh_count", 0) > 0:
+        utils.build_foreground_drifters(
+            "Matter_FG_Bokeh",
+            col,
+            cfg,
+            stage_key="matter",
+            u_start=13.8,
+            u_end=16.2,
+            hide_frames=((1, True), (323, True), (324, False), (398, False), (399, True)),
+            core_rgb=(1.0, 0.94, 0.74),
+            edge_rgb=(1.0, 0.50, 0.10),
+            count=dp_m["fg_bokeh_count"],
+            seed=515,
+            strength=2.2,
+            alpha_peak=0.58,
+        )
 
     mat_alpha = utils.sample_stage_envelope("matter", cfg, 0.96, rest_val=0.0)
     pair_ramp = [(0.0, c_gold), (1.0, c_cyan)]

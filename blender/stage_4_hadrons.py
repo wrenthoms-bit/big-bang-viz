@@ -263,15 +263,31 @@ def build(scene, cfg, mode="scaffold"):
 
     # Full cinematic look-development mode
     fl = cfg["full_look"]["hadrons"]
+    dp = cfg.get("depth_pass", {})
+    depth_on = bool(dp.get("enabled", False))
+    dp_h = dp.get("hadrons", {}) if depth_on else {}
 
-    had_ramp = [
-        (0.18, (0.14, 0.025, 0.008)),
-        (0.46, (0.48, 0.120, 0.020)),
-        (0.74, (0.85, 0.360, 0.060)),
-        (0.92, (1.00, 0.760, 0.280)),
-    ]
-    dens_keys = utils.sample_stage_envelope("hadrons", cfg, fl["shell_density"], rest_val=0.0)
-    em_keys = utils.sample_stage_envelope("hadrons", cfg, fl["shell_emission"], rest_val=0.0)
+    if depth_on:
+        had_ramp = [
+            (0.14, (0.04, 0.008, 0.002)),
+            (0.44, (0.48, 0.120, 0.020)),
+            (0.74, (0.85, 0.360, 0.060)),
+            (0.92, (1.00, 0.760, 0.280)),
+        ]
+        shell_dens_peak = dp_h.get("shell_density", fl["shell_density"])
+        shell_em_peak = dp_h.get("shell_emission", fl["shell_emission"])
+    else:
+        had_ramp = [
+            (0.18, (0.14, 0.025, 0.008)),
+            (0.46, (0.48, 0.120, 0.020)),
+            (0.74, (0.85, 0.360, 0.060)),
+            (0.92, (1.00, 0.760, 0.280)),
+        ]
+        shell_dens_peak = fl["shell_density"]
+        shell_em_peak = fl["shell_emission"]
+
+    dens_keys = utils.sample_stage_envelope("hadrons", cfg, shell_dens_peak, rest_val=0.0)
+    em_keys = utils.sample_stage_envelope("hadrons", cfg, shell_em_peak, rest_val=0.0)
     vol_mat = utils.make_rich_volume_material(
         "Stage4_Hadrons_VolMat",
         inner_r=38.0,
@@ -289,8 +305,26 @@ def build(scene, cfg, mode="scaffold"):
         density_keyframes=dens_keys,
         emission_keyframes=em_keys,
         cfg=cfg,
+        depth_cfg=dp_h if depth_on else None,
     )
     utils.create_volume_sphere("Hadrons_Shell_Volume", col, radius=66.0, mat=vol_mat, subdivisions=3, active_frame_range=(246, 352))
+
+    if depth_on and dp_h.get("fg_bokeh_count", 0) > 0:
+        utils.build_foreground_drifters(
+            "Hadrons_FG_Bokeh",
+            col,
+            cfg,
+            stage_key="hadrons",
+            u_start=10.6,
+            u_end=14.2,
+            hide_frames=((1, True), (248, True), (249, False), (348, False), (349, True)),
+            core_rgb=(1.0, 0.90, 0.66),
+            edge_rgb=(1.0, 0.44, 0.08),
+            count=dp_h["fg_bokeh_count"],
+            seed=414,
+            strength=2.2,
+            alpha_peak=0.58,
+        )
 
     had_alpha = utils.sample_stage_envelope("hadrons", cfg, 0.96, rest_val=0.0)
     q_ramp = [
